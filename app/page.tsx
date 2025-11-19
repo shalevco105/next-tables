@@ -168,7 +168,7 @@ export default function Home() {
       editable: isAdmin,
       renderCell: (params: any) => {
         const v = params.value ?? params.row?.income ?? null;
-        return v == null ? '' : (Number(v).toLocaleString());
+        return v == null ? '' : (Number(v).toLocaleString('en-US'));
       },
     },
     {
@@ -180,7 +180,7 @@ export default function Home() {
       editable: isAdmin,
       renderCell: (params: any) => {
         const v = params.value ?? params.row?.cost ?? null;
-        return v == null ? '' : (Number(v).toLocaleString());
+        return v == null ? '' : (Number(v).toLocaleString('en-US'));
       },
     },
     {
@@ -197,7 +197,7 @@ export default function Home() {
       },
       renderCell: (params: any) => {
         const v = params.value ?? 0;
-        return v == null ? '' : (Number(v).toLocaleString());
+        return v == null ? '' : (Number(v).toLocaleString('en-US'));
       },
     },
     {
