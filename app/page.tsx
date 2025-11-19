@@ -13,7 +13,7 @@ import {
   ListItemText,
   TextField,
 } from '@mui/material';
-import { DataGrid, GridColDef, GridRenderCellParams, GridToolbar, GridValueGetterParams } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridRenderCellParams, GridToolbar, GridValueGetter } from '@mui/x-data-grid';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { adminUsers } from './config/users';
@@ -40,6 +40,12 @@ const initialRows: Row[] = sampleRows as unknown as Row[];
 export default function Home() {
   const [rows, setRows] = useState<Row[]>(initialRows);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const cookie = document.cookie.split('; ').find((c) => c.startsWith('user='));
+    const uname = cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
+    setIsAdmin(!!uname && adminUsers.includes(uname));
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFields, setSearchFields] = useState<string[]>([
     'name',
@@ -60,14 +66,7 @@ export default function Home() {
     { field: 'notes', label: 'Notes' },
   ];
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const cookie = document.cookie
-      .split('; ')
-      .find((c) => c.startsWith('user='));
-    const uname = cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
-    setIsAdmin(uname ? adminUsers.includes(uname) : false);
-  }, []);
+
 
   const handleCellEditCommit = (params: any) => {
     const { id, field, value } = params;
@@ -190,7 +189,7 @@ export default function Home() {
       type: 'number',
       flex: 0.7,
       minWidth: 110,
-      valueGetter: (params: GridValueGetterParams) => {
+      valueGetter: (params: any) => {
         if (!params || !params.row) return 0; // extra safety
         const income = Number(params.row.income ?? 0);
         const cost = Number(params.row.cost ?? 0);

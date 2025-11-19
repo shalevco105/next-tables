@@ -58,34 +58,41 @@ function describeArc(x: number, y: number, radius: number, startAngle: number, e
 
 function PieChart({ data, size = 260 }: { data: { label: string; value: number }[]; size?: number }) {
     const total = data.reduce((s, d) => s + Math.max(0, d.value), 0) || 1;
-    let startAngle = 0;
     const colors = ['#1976d2', '#388e3c', '#f57c00', '#d32f2f', '#7b1fa2', '#0288d1', '#ffb300'];
+
+    // Precompute segments with start/end angles so we don't mutate during render
+    const segments = data.map((d, i) => {
+        const value = Math.max(0, d.value);
+        const angle = (value / total) * 360;
+        const start = data.slice(0, i).reduce((sum, dd) => sum + (Math.max(0, dd.value) / total) * 360, 0);
+        const end = start + angle;
+        return {
+            label: d.label,
+            value,
+            start,
+            end,
+            color: colors[i % colors.length],
+        };
+    });
 
     return (
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
             <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
                 <g transform={`translate(${size / 2}, ${size / 2})`}>
-                    {data.map((d, i) => {
-                        const value = Math.max(0, d.value);
-                        const angle = (value / total) * 360;
-                        const path = describeArc(0, 0, size / 2 - 10, startAngle, startAngle + angle);
-                        const color = colors[i % colors.length];
-                        const pathEl = (
-                            <path key={d.label} d={path} fill="none" stroke={color} strokeWidth={size / 2} strokeLinecap="butt" />
-                        );
-                        startAngle += angle;
-                        return pathEl;
+                    {segments.map((s) => {
+                        const path = describeArc(0, 0, size / 2 - 10, s.start, s.end);
+                        return <path key={s.label} d={path} fill="none" stroke={s.color} strokeWidth={size / 2} strokeLinecap="butt" />;
                     })}
                 </g>
             </svg>
 
             <Box>
-                {data.map((d, i) => {
-                    const pct = ((Math.max(0, d.value) / total) * 100).toFixed(1);
+                {segments.map((s) => {
+                    const pct = ((s.value / total) * 100).toFixed(1);
                     return (
-                        <Box key={d.label} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                            <Box sx={{ width: 12, height: 12, background: colors[i % colors.length], borderRadius: 1 }} />
-                            <Box sx={{ fontSize: 13 }}>{d.label}</Box>
+                        <Box key={s.label} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                            <Box sx={{ width: 12, height: 12, background: s.color, borderRadius: 1 }} />
+                            <Box sx={{ fontSize: 13 }}>{s.label}</Box>
                             <Box sx={{ ml: 1, color: '#666', fontSize: 13 }}>{pct}%</Box>
                         </Box>
                     );
@@ -96,7 +103,7 @@ function PieChart({ data, size = 260 }: { data: { label: string; value: number }
 }
 
 export default function AnalyticsPage() {
-    const rows: Row[] = sampleRows as any;
+    const rows: Row[] = sampleRows as unknown as Row[];
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
