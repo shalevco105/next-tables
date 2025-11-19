@@ -1,28 +1,28 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { adminUsers, readOnlyUsers } from "../config/users";
 
 export default function LoginPage() {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const nextUrl = searchParams?.get("next") || "/";
+    const [nextUrl, setNextUrl] = useState("/");
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
     useEffect(() => {
-        if (typeof window !== "undefined") {
-            const cookie = document.cookie
-                .split("; ")
-                .find((c) => c.startsWith("auth="));
-            if (cookie?.split("=")[1] === "true") {
-                router.replace(nextUrl);
-            }
+        if (typeof window === "undefined") return;
+        const sp = new URLSearchParams(window.location.search);
+        const next = sp.get("next") || "/";
+        setNextUrl(next);
+
+        const cookie = document.cookie.split("; ").find((c) => c.startsWith("auth="));
+        if (cookie?.split("=")[1] === "true") {
+            router.replace(next);
         }
-    }, [router, nextUrl]);
+    }, [router]);
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
